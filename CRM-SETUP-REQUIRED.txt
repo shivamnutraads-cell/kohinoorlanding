@@ -1,0 +1,20 @@
+KOHINOOR ADVANCE PLUS — LEADVERTEX CRM CONNECTION
+
+Configured values:
+- LeadVertex project: kohinoorplus
+- Webmaster ID: 28
+- Kohinoor Advance Plus GoodID: 184285
+- Product price sent to CRM: 2690
+- WhatsApp number: 7042311179
+
+The API token is stored only in leadvertex-settings.php on the server side. It is not included in HTML or JavaScript.
+
+IMPORTANT DEPLOYMENT REQUIREMENTS:
+1. Upload the complete folder to PHP-enabled hosting (PHP 7.4+ recommended).
+2. Keep leadvertex-settings.php and leadvertex-order.php on the same server directory as index.html.
+3. PHP cURL must be enabled and outbound HTTPS requests must be allowed.
+4. The LeadVertex webmaster account must have permission to import orders via API.
+5. The landing page must be served by this PHP-enabled host. Static-only hosting (for example, GitHub Pages) cannot execute leadvertex-order.php.
+6. Submit one test order and confirm it appears in LeadVertex Orders before advertising.
+
+The form redirects to thankyou.html only after the handler receives an accepted response from the LeadVertex API. A successful local HTTP response alone is not proof of CRM delivery; verify the test order in the CRM.
