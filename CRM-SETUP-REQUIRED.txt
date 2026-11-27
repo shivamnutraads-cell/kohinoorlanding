@@ -1,53 +1,58 @@
-KOHINOOR ADVANCE PLUS — GITHUB PAGES + GOOGLE APPS SCRIPT + LEADVERTEX
+KOHINOOR ADVANCE PLUS — GITHUB PAGES + GOOGLE APPS SCRIPT + LEADVERTEX + WHATSAPP CLICK TRACKING
 
-This version uses the same architecture as the FlexComfort project:
-GitHub Pages (index.html) -> Google Apps Script Web App -> LeadVertex CRM.
-No PHP hosting is required. The old PHP files were removed from this package.
+WHAT THIS VERSION DOES
+- Keeps the existing landing page design and WhatsApp number 7042311179.
+- Tracks WhatsApp button clicks in a Google Sheet, with a generated reference ID and available URL campaign parameters.
+- Fires the existing ExoClick goal assigned to the WhatsApp button (goal ID already present in the supplied site code).
+- Carries UTM values, ExoClick click ID (when supplied in the landing-page URL), and WhatsApp reference into order submissions.
+- Keeps the existing LeadVertex order bridge through Google Apps Script.
 
-LEADVERTEX VALUES PRESERVED FROM THE ORIGINAL PROJECT
-- Project: kohinoorplus
-- Webmaster ID: 28
-- Good ID: 184285
-- Product price sent to CRM: 2690
-- Quantity: 1
+IMPORTANT LIMITATION
+This tracks a WhatsApp button click, NOT proof that the visitor sent a WhatsApp message. A regular WhatsApp account has no incoming-message webhook for this website. The visitor must press Send; then you manually mark "Message received?" in the tracking sheet and use the reference ID from the message to match the enquiry. Automatic incoming message and status tracking requires WhatsApp Business Platform/API and an approved integration.
 
-1. CREATE THE GOOGLE APPS SCRIPT
-- Open https://script.google.com/ and create a New project.
-- Replace the contents of Code.gs with the complete contents of LeadVertex-Google-Apps-Script.gs.
-- Open Project Settings -> Script Properties and add:
+1) SECURITY FIRST
+The ZIP supplied for review contained an old LeadVertex API credential in a PHP file. That PHP file has been removed from this ZIP. Revoke/rotate that old token in LeadVertex immediately. Do not put the replacement token in GitHub, HTML, JavaScript, or chat.
+
+2) UPDATE GOOGLE APPS SCRIPT
+- Open https://script.google.com/ and open the Apps Script project currently used by this landing page.
+- Replace Code.gs with the included LeadVertex-Google-Apps-Script.gs.
+- In Project Settings -> Script Properties, set:
   LEADVERTEX_PROJECT = kohinoorplus
   LEADVERTEX_WEBMASTER_ID = 28
-  LEADVERTEX_TOKEN = YOUR_NEW_LEADVERTEX_API_TOKEN
+  LEADVERTEX_TOKEN = [your newly rotated token]
   LEADVERTEX_GOOD_ID = 184285
   LEADVERTEX_PRODUCT_PRICE = 2690
-- Save. Do not put the API token in index.html or GitHub.
+- Save.
 
-2. DEPLOY AS WEB APP
-- Deploy -> New deployment -> select Web app.
-- Execute as: Me.
-- Who has access: Anyone.
-- Deploy and complete authorization.
-- Copy the URL ending in /exec.
+3) REDEPLOY THE WEB APP
+- Deploy -> Manage deployments -> Edit (pencil) -> Version: New version -> Deploy.
+- Keep Execute as: Me and Who has access: Anyone.
+- The existing /exec URL is already referenced by index.html in this ZIP. If you create a new deployment with a different URL, replace LEADVERTEX_PROXY_URL in index.html with the new /exec URL.
 
-3. CONNECT THE WEBSITE
-- Open index.html.
-- Find PASTE_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE.
-- Replace it with your deployed Apps Script /exec URL.
-- Commit/push the updated files to GitHub.
+4) CREATE THE TRACKING SHEET
+- In Apps Script function selector, choose showTrackingSheetUrl and click Run once.
+- Authorize Google permissions.
+- Open Execution log; copy the printed Google Sheet URL and bookmark it.
+- The sheet is created automatically on first run/click. Do not share it publicly.
+- Each WhatsApp click adds one row. After you receive a real WhatsApp message, find its Reference ID in the message and update that row's "Message received?" to Yes. Fill Order/CRM ID, Order status and Order value when you manually create/update the order in LeadVertex.
 
-4. ENABLE GITHUB PAGES
-- In GitHub repository: Settings -> Pages.
-- Select Deploy from a branch, branch main, folder /(root), then Save.
-- Wait for GitHub Pages to publish the website.
+5) PUBLISH ON GITHUB PAGES
+- Upload the contents of this ZIP to the same repository/branch/folder used by GitHub Pages, replacing the old files.
+- Do not upload PHP files or any API token.
+- GitHub Pages supports static HTML/CSS/JS, not PHP. The order and click logging backend is Google Apps Script.
+- Wait for GitHub Pages deployment to finish.
 
-5. TEST
-- Submit one real test order using your own phone/address.
-- Confirm the order appears in LeadVertex -> Orders.
-- If it fails, open Apps Script -> Executions and inspect the latest execution log.
-- If Apps Script code changes later, Deploy -> Manage deployments -> Edit -> select New version -> Deploy.
+6) TEST
+A. Open the live landing page with a test query, e.g. ?utm_source=exoclick&utm_campaign=wa-test .
+B. Click either WhatsApp button. A chat opens with a prefilled message containing a unique Reference ID.
+C. Check the Google Sheet: a new "WhatsApp button click" row should appear.
+D. Do NOT count it as an actual lead until the customer sends the message and you verify it in WhatsApp.
+E. Submit one test order through the website form and confirm it appears in LeadVertex. Existing order form data and UTM values are passed to the bridge.
 
-IMPORTANT
-- The previous leadvertex-settings.php file contained a credential. It has been removed from this package. Rotate/revoke that old LeadVertex token and use a new token only in Script Properties.
-- Check that Webmaster 28 has permission to create orders and Good ID 184285 is active/available.
-- GitHub Pages serves static files; Google Apps Script performs the server-side CRM request.
-- This bridge follows the same general flow as FlexComfort, but its CRM project, Good ID and price remain Kohinoor's values.
+EXOCLICK CLICK ID
+The page stores common incoming parameter names such as clickid, click_id, conid, external_id, subid, campaign_id, site_id, zone_id and banner_id. In ExoClick campaign settings, append the actual ExoClick macro(s) supported by your account to the landing-page URL using the exact macro syntax shown by ExoClick. If no click ID macro is passed, the click will still be logged but cannot be joined reliably to an ExoClick visitor/campaign click.
+
+CURRENT TRACKING SCOPE
+- Automatic: landing-page visit goal, WhatsApp button click goal, click log, reference ID, available URL attribution, normal website order submission to LeadVertex.
+- Manual: verifying an actual WhatsApp message, matching a manually created WhatsApp order to the reference ID, entering delivered/cancelled status and order value in the sheet.
+- Not included: automatic reading of regular WhatsApp chats, automatic LeadVertex order creation from a WhatsApp chat, automatic delivery status synchronization, or server-to-server ExoClick postbacks for WhatsApp orders. Those require WhatsApp Business Platform/API and a secure server-side integration plus verified ExoClick click ID/postback configuration.
