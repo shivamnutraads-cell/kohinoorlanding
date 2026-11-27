@@ -185,6 +185,21 @@ a[href="#odr"]:hover,#submit-btn:hover{background:var(--bp-red)!important;color:
           if (!response.ok || result.success !== true) {
             throw new Error(result.error || result.message || 'LeadVertex ने ऑर्डर स्वीकार नहीं किया।');
           }
+          // Kohinoor Tracker: record a lead only after the LeadVertex proxy confirms success.
+          if (window.KohinoorTracker) {
+            window.KohinoorTracker.send('/lead', {
+              name: form.elements.name.value.trim(),
+              mobile: form.elements.mobile.value.trim(),
+              page_url: window.location.href,
+              ref_id: savedAttribution.ref_id || '',
+              click_id: savedAttribution.click_id || savedAttribution.ref_id || '',
+              utm_source: savedAttribution.utm_source || '',
+              utm_medium: savedAttribution.utm_medium || '',
+              utm_campaign: savedAttribution.utm_campaign || '',
+              utm_content: savedAttribution.utm_content || '',
+              utm_term: savedAttribution.utm_term || ''
+            });
+          }
           try { sessionStorage.setItem('kohinoor_order_pending', '1'); } catch (_) {}
           window.location.href = 'thankyou.html';
           return;
@@ -297,4 +312,55 @@ a[href="#odr"]:hover,#submit-btn:hover{background:var(--bp-red)!important;color:
     if (document.readyState === 'complete') observe();
     else window.addEventListener('load', observe, { once: true });
 }());
-</script> </body></html>
+</script> 
+<script id="kohinoor-tracker-client">
+(function () {
+  'use strict';
+  var endpoint = 'https://kohinoor-tracker-api.shivamnutraads.workers.dev';
+  var config = {
+    website_id: 'af43cbc2-553e-4bef-b547-0325920edd6a',
+    site_key: 'JLo-u-MYBUsYK6wIlcL7XmEA5EjywPrJTp8gtH7iJlc'
+  };
+  function attribution() {
+    try {
+      if (typeof getKohinoorAttribution === 'function') return getKohinoorAttribution();
+    } catch (_) {}
+    var p = new URLSearchParams(location.search);
+    return {
+      ref_id: p.get('click_id') || p.get('clickid') || ('KOH-' + Date.now().toString(36)),
+      click_id: p.get('click_id') || p.get('clickid') || '',
+      utm_source: p.get('utm_source') || '', utm_medium: p.get('utm_medium') || '',
+      utm_campaign: p.get('utm_campaign') || '', utm_content: p.get('utm_content') || '',
+      utm_term: p.get('utm_term') || ''
+    };
+  }
+  var attr = attribution();
+  function send(path, extra) {
+    var payload = Object.assign({}, config, {
+      ref_id: attr.ref_id || '', click_id: attr.click_id || attr.ref_id || '',
+      page_url: location.href, referrer: document.referrer || '',
+      utm_source: attr.utm_source || '', utm_medium: attr.utm_medium || '',
+      utm_campaign: attr.utm_campaign || '', utm_content: attr.utm_content || '',
+      utm_term: attr.utm_term || ''
+    }, extra || {});
+    try {
+      // text/plain is a CORS-simple request, so the browser does not send an OPTIONS preflight.
+      // no-cors means the page cannot read the response; it does not prove the event was stored.
+      return fetch(endpoint + path, {
+        method: 'POST', mode: 'no-cors', keepalive: true,
+        headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+        body: JSON.stringify(payload)
+      }).catch(function () {});
+    } catch (_) { return Promise.resolve(); }
+  }
+  window.KohinoorTracker = { send: send };
+  // Page visit
+  send('/track', { event_type: 'page_view' });
+  // WhatsApp clicks (this records the click, not whether a message was sent).
+  document.addEventListener('click', function (event) {
+    var link = event.target && event.target.closest ? event.target.closest('a[data-whatsapp-track="1"]') : null;
+    if (link) send('/whatsapp', { event_type: 'whatsapp_click' });
+  }, true);
+}());
+</script>
+</body></html>
