@@ -220,14 +220,7 @@ a[href="#odr"]:hover,#submit-btn:hover{background:var(--bp-red)!important;color:
         const message = 'Namaste, mujhe Kohinoor Advance Plus ke baare mein jaankari chahiye. Reference: ' + attribution.ref_id;
         link.href = 'https://wa.me/917042311179?text=' + encodeURIComponent(message);
         link.addEventListener('click', function () {
-          // Existing ExoClick "call" goal is used for the WhatsApp button click.
-          try {
-            const tag = document.createElement('script');
-            tag.async = true;
-            tag.src = 'https://a.magsrv.com/tag_gen.js';
-            tag.setAttribute('data-goal', 'bfac803b44d1b77487d6c62ec7650773');
-            document.body.appendChild(tag);
-          } catch (_) {}
+          // WhatsApp click conversion is sent server-to-server by Apps Script.
           // Image GET avoids cross-origin fetch/CORS issues on GitHub Pages.
           const q = new URLSearchParams({
             action: 'wa_click', ref_id: attribution.ref_id,
