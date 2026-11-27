@@ -1,20 +1,53 @@
-KOHINOOR ADVANCE PLUS — LEADVERTEX CRM CONNECTION
+KOHINOOR ADVANCE PLUS — GITHUB PAGES + GOOGLE APPS SCRIPT + LEADVERTEX
 
-Configured values:
-- LeadVertex project: kohinoorplus
+This version uses the same architecture as the FlexComfort project:
+GitHub Pages (index.html) -> Google Apps Script Web App -> LeadVertex CRM.
+No PHP hosting is required. The old PHP files were removed from this package.
+
+LEADVERTEX VALUES PRESERVED FROM THE ORIGINAL PROJECT
+- Project: kohinoorplus
 - Webmaster ID: 28
-- Kohinoor Advance Plus GoodID: 184285
+- Good ID: 184285
 - Product price sent to CRM: 2690
-- WhatsApp number: 7042311179
+- Quantity: 1
 
-The API token is stored only in leadvertex-settings.php on the server side. It is not included in HTML or JavaScript.
+1. CREATE THE GOOGLE APPS SCRIPT
+- Open https://script.google.com/ and create a New project.
+- Replace the contents of Code.gs with the complete contents of LeadVertex-Google-Apps-Script.gs.
+- Open Project Settings -> Script Properties and add:
+  LEADVERTEX_PROJECT = kohinoorplus
+  LEADVERTEX_WEBMASTER_ID = 28
+  LEADVERTEX_TOKEN = YOUR_NEW_LEADVERTEX_API_TOKEN
+  LEADVERTEX_GOOD_ID = 184285
+  LEADVERTEX_PRODUCT_PRICE = 2690
+- Save. Do not put the API token in index.html or GitHub.
 
-IMPORTANT DEPLOYMENT REQUIREMENTS:
-1. Upload the complete folder to PHP-enabled hosting (PHP 7.4+ recommended).
-2. Keep leadvertex-settings.php and leadvertex-order.php on the same server directory as index.html.
-3. PHP cURL must be enabled and outbound HTTPS requests must be allowed.
-4. The LeadVertex webmaster account must have permission to import orders via API.
-5. The landing page must be served by this PHP-enabled host. Static-only hosting (for example, GitHub Pages) cannot execute leadvertex-order.php.
-6. Submit one test order and confirm it appears in LeadVertex Orders before advertising.
+2. DEPLOY AS WEB APP
+- Deploy -> New deployment -> select Web app.
+- Execute as: Me.
+- Who has access: Anyone.
+- Deploy and complete authorization.
+- Copy the URL ending in /exec.
 
-The form redirects to thankyou.html only after the handler receives an accepted response from the LeadVertex API. A successful local HTTP response alone is not proof of CRM delivery; verify the test order in the CRM.
+3. CONNECT THE WEBSITE
+- Open index.html.
+- Find PASTE_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE.
+- Replace it with your deployed Apps Script /exec URL.
+- Commit/push the updated files to GitHub.
+
+4. ENABLE GITHUB PAGES
+- In GitHub repository: Settings -> Pages.
+- Select Deploy from a branch, branch main, folder /(root), then Save.
+- Wait for GitHub Pages to publish the website.
+
+5. TEST
+- Submit one real test order using your own phone/address.
+- Confirm the order appears in LeadVertex -> Orders.
+- If it fails, open Apps Script -> Executions and inspect the latest execution log.
+- If Apps Script code changes later, Deploy -> Manage deployments -> Edit -> select New version -> Deploy.
+
+IMPORTANT
+- The previous leadvertex-settings.php file contained a credential. It has been removed from this package. Rotate/revoke that old LeadVertex token and use a new token only in Script Properties.
+- Check that Webmaster 28 has permission to create orders and Good ID 184285 is active/available.
+- GitHub Pages serves static files; Google Apps Script performs the server-side CRM request.
+- This bridge follows the same general flow as FlexComfort, but its CRM project, Good ID and price remain Kohinoor's values.
